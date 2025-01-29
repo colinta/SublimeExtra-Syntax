@@ -1,0 +1,403 @@
+%YAML 1.2
+---
+name: Extra
+file_extensions:
+  - extra
+scope: source.extra
+prototype:
+  - include: main
+
+contexts:
+  main:
+    - include: comments
+    - include: strings
+    - include: regex
+    - include: html
+    - include: keywords
+    - include: types
+    - include: state_variables
+    - include: actions
+    - include: arrays
+    - include: objects
+
+  comments:
+    # Double Dash Comments
+    - match: '(<--|-->|--)'
+      scope: punctuation.definition.comment.extra
+      push:
+        - meta_scope: comment.line.extra
+        - match: $
+          pop: true
+
+    # Box Drawing Character Comments
+    - match: '[─-╿]'
+      scope: punctuation.definition.comment.extra
+      push:
+        - meta_scope: comment.line.box-drawing.extra
+        - match: $
+          pop: true
+
+    # Nested Block Comments
+    - match: '\{-'
+      scope: punctuation.definition.comment.begin.extra
+      push: block_comment
+
+  block_comment:
+    - meta_scope: comment.block.extra
+    - match: '\{-'
+      scope: punctuation.definition.comment.begin.extra
+      push: block_comment
+    - match: '-\}'
+      scope: punctuation.definition.comment.end.extra
+      pop: true
+    - match: .
+      scope: comment.block.extra
+
+  strings:
+    # Triple Double Quoted Strings
+    - match: '"""'
+      scope: punctuation.definition.string.begin.extra
+      push:
+        - meta_scope: string.quoted.triple.double.extra
+        - match: '"""'
+          scope: punctuation.definition.string.end.extra
+          pop: true
+
+    # Triple Single Quoted Strings
+    - match: "'''"
+      scope: punctuation.definition.string.begin.extra
+      push:
+        - meta_scope: string.quoted.triple.single.extra
+        - match: "'''"
+          scope: punctuation.definition.string.end.extra
+          pop: true
+
+    # Triple Backtick Strings with Interpolation
+    - match: '```'
+      scope: punctuation.definition.string.begin.extra
+      push:
+        - meta_scope: string.quoted.triple.backtick.extra
+        - match: '\\[`$\\]'
+          scope: constant.character.escape.extra
+        - match: '\$\{'
+          scope: punctuation.section.interpolation.begin.extra
+          push: interpolation
+        - match: '```'
+          scope: punctuation.definition.string.end.extra
+          pop: true
+
+    # Regular Double Quoted Strings
+    - match: '"'
+      scope: punctuation.definition.string.begin.extra
+      push:
+        - meta_scope: string.quoted.double.extra
+        - match: '"'
+          scope: punctuation.definition.string.end.extra
+          pop: true
+
+    # Regular Single Quoted Strings
+    - match: "'"
+      scope: punctuation.definition.string.begin.extra
+      push:
+        - meta_scope: string.quoted.single.extra
+        - match: "'"
+          scope: punctuation.definition.string.end.extra
+          pop: true
+
+    # Regular Backtick Strings with Interpolation
+    - match: '`'
+      scope: punctuation.definition.string.begin.extra
+      push:
+        - meta_scope: string.quoted.backtick.extra
+        - match: '\\[`$\\]'
+          scope: constant.character.escape.extra
+        - match: '\$\{'
+          scope: punctuation.section.interpolation.begin.extra
+          push: interpolation
+        - match: '`'
+          scope: punctuation.definition.string.end.extra
+          pop: true
+
+  regex:
+    # Triple slash multiline regex
+    - match: '///'
+      scope: punctuation.definition.regex.begin.extra
+      push:
+        - meta_scope: string.regexp.multiline.extra
+        - match: '\\/'  # Escaped forward slash
+          scope: constant.character.escape.regex.extra
+        - match: '\\[bwdsDWS]'  # Character classes
+          scope: constant.character.escape.regex.extra
+        - match: '\\[.*?]'  # Other escapes
+          scope: constant.character.escape.regex.extra
+        - match: '\[[^\]]*\]'  # Character sets
+          scope: constant.other.character-class.set.regex.extra
+        - match: '[?+*]|\{\d+(?:,\d*)?\}'  # Quantifiers
+          scope: keyword.operator.quantifier.regex.extra
+        - match: '///([gimuy]*)'  # End of regex with optional flags
+          captures:
+            0: punctuation.definition.regex.end.extra
+            1: keyword.other.regex.flag.extra
+          pop: true
+
+    # Single line regex
+    - match: '(?<![/])/(?![/])'  # Match / but not // (to avoid confusion with comments)
+      scope: punctuation.definition.regex.begin.extra
+      push:
+        - meta_scope: string.regexp.extra
+        - match: $  # If we hit end of line before closing /, it's invalid
+          pop: true
+        - match: '\\/'  # Escaped forward slash
+          scope: constant.character.escape.regex.extra
+        - match: '\\[bwdsDWS]'  # Character classes
+          scope: constant.character.escape.regex.extra
+        - match: '\\[.*?]'  # Other escapes
+          scope: constant.character.escape.regex.extra
+        - match: '\[[^\]]*\]'  # Character sets
+          scope: constant.other.character-class.set.regex.extra
+        - match: '[?+*]|\{\d+(?:,\d*)?\}'  # Quantifiers
+          scope: keyword.operator.quantifier.regex.extra
+        - match: '/([gimuy]*)'  # End of regex with optional flags
+          captures:
+            0: punctuation.definition.regex.end.extra
+            1: keyword.other.regex.flag.extra
+          pop: true
+
+  keywords:
+    - match: '\b(fn)\b'
+      scope: keyword.control.extra
+      push: function_name
+    - match: '\b(public type|type public|type)\b'
+      scope: keyword.control.extra
+      push: type_definition
+    - match: '\b(expects|let|in|public|if|then|elseif|else|enum|case|switch)\b'
+      scope: keyword.control.extra
+    - match: '\b(import)\b'
+      scope: keyword.control.import.extra
+      push: import_path
+
+  state_variables:
+    - match: '(@)([a-zA-Z_][\w\-]*)'
+      captures:
+        0: storage.type.user-defined.extra
+        1: punctuation.definition.state.extra
+        2: variable.other.state.extra
+
+  actions:
+    - match: '&[a-zA-Z_][\w\-]*'
+      scope: keyword.function.action.extra
+
+  types:
+    - match: '\b[A-Z][a-zA-Z0-9]*\b'
+      scope: storage.type.extra
+
+  interpolation:
+    - meta_scope: meta.interpolation.extra
+    - match: '\}'
+      scope: punctuation.section.interpolation.end.extra
+      pop: true
+    - include: main
+
+  arrays:
+    - match: '\['
+      scope: punctuation.section.brackets.begin.extra
+      push:
+        - meta_scope: meta.brackets.extra
+        - match: '\]'
+          scope: punctuation.section.brackets.end.extra
+          pop: true
+        - include: main
+
+  objects:
+    - match: '{'
+      scope: punctuation.section.braces.begin.extra
+      push:
+        - meta_scope: meta.braces.extra
+        - match: '\}'
+          scope: punctuation.section.braces.end.extra
+          pop: true
+        - include: main
+
+  html:
+    # Opening tags - alphanumeric, underscore, dash, and can have colon separators
+    - match: '<([A-Za-z][a-zA-Z0-9_-]*(?::[a-zA-Z0-9_-]+)*)'
+      captures:
+        1: entity.name.tag.extra
+      push: html_tag_attributes
+
+    # Self-closing fragment
+    - match: '<>'
+      scope: punctuation.definition.tag.begin.extra
+      push: html_content
+
+    # Closing tags
+    - match: '</([A-Za-z][a-zA-Z0-9_-]*(?::[a-zA-Z0-9_-]+)*)\s*>'
+      captures:
+        0: punctuation.definition.tag.end.extra
+        1: entity.name.tag.extra
+      pop: true
+
+    # Closing fragment
+    - match: '</>'
+      scope: punctuation.definition.tag.end.extra
+      pop: true
+
+  html_tag_attributes:
+    # End of opening tag
+    - match: '/>'
+      scope: punctuation.definition.tag.end.extra
+      pop: true
+
+    # End of opening tag
+    - match: '>'
+      scope: punctuation.definition.tag.end.extra
+      set: html_content
+
+    # Attributes with values
+    - match: '([A-Za-z][a-zA-Z0-9_-]*(?::[a-zA-Z0-9_-]+)*)(=)'
+      captures:
+        1: entity.other.attribute-name.extra
+        2: punctuation.separator.key-value.extra
+      push: html_attribute_value
+
+    # Valueless (true) attributes
+    - match: '[A-Za-z][a-zA-Z0-9_-]*(?::[a-zA-Z0-9_-]+)*'
+      scope: entity.other.attribute-name.extra
+
+    # Valueless (false) attributes
+    - match: '![A-Za-z][a-zA-Z0-9_-]*(?::[a-zA-Z0-9_-]+)*'
+      scope: entity.other.attribute-name.extra
+
+  html_attribute_value:
+    # variable reference
+    - match: '[@&]?[a-zA-Z_][\w\-]*'
+      scope: variable.other.state.extra
+      pop: true
+
+    # Boolean/number literals
+    - match: '\b(true|false|\d+)\b'
+      scope: constant.language.extra
+      pop: true
+
+    # String literals
+    - include: strings
+
+    # Expression
+    - match: '{'
+      scope: punctuation.section.expression.begin.extra
+      push: html_expression
+
+    - match: '(?=\S)'
+      pop: true
+
+  html_content:
+    # Expression interpolation
+    - match: '{'
+      scope: punctuation.section.expression.begin.extra
+      push: html_expression
+
+    # Include other HTML tags
+    - include: html
+
+    # Text content
+    - match: '[^<{]+'
+      scope: text.html.extra
+
+  html_expression:
+    - meta_scope: meta.embedded.expression.extra
+    - match: '}'
+      scope: punctuation.section.expression.end.extra
+      pop: true
+    - include: main
+
+  type_definition:
+    - match: '\s*([A-Z][a-zA-Z0-9]*)'
+      captures:
+        1: storage.type.extra
+      push: type_generics
+    - match: '(?=\S)'
+      pop: true
+
+  type_generics:
+    - match: '<'
+      scope: punctuation.definition.generic.begin.extra
+      push: generic_params
+    - match: '(?=\S)'
+      pop: true
+
+  function_name:
+    - match: '\s+([a-z][a-zA-Z0-9_]*)'
+      captures:
+        1: entity.name.function.extra
+      push: function_generics
+    - match: '(?=<)'  # Anonymous function with generics
+      push: function_generics
+    - match: '(?=\S)'  # Anonymous function without generics
+      pop: true
+
+  function_generics:
+    - match: '<'
+      scope: punctuation.definition.generic.begin.extra
+      push: generic_params
+    - match: '(?=\S)'
+      pop: true
+
+  generic_params:
+    - match: '>'
+      scope: punctuation.definition.generic.end.extra
+      pop: true
+    - match: '[A-Z][a-zA-Z0-9]*'
+      scope: storage.type.generic.extra
+    - match: ','
+      scope: punctuation.separator.generic.extra
+
+  import_path:
+    # Match absolute paths starting with /
+    - match: '\s*(/[a-zA-Z][a-zA-Z0-9_/\-]*)'
+      scope: string.unquoted.module.absolute.extra
+      set: [import_specifier_optional]
+
+    # Match relative paths starting with ./
+    - match: '\s*(\./[a-zA-Z][a-zA-Z0-9_/\-]*)'
+      scope: string.unquoted.module.relative.extra
+      set: [import_specifier_optional]
+
+    # Match package paths (no leading / or ./)
+    - match: '\s*([a-zA-Z][a-zA-Z0-9_\-]*/[a-zA-Z][a-zA-Z0-9_/\-]*|[a-zA-Z][a-zA-Z0-9_\-]*)'
+      scope: string.unquoted.module.package.extra
+      set: [import_specifier_optional]
+
+  import_specifier_optional:
+    # Handle "as" alias
+    - match: '\s+as\s+'
+      scope: keyword.control.import.as.extra
+      set: import_alias
+
+    # Handle partial imports with :
+    - match: '\s*:'
+      scope: punctuation.separator.import.extra
+      set: import_list
+
+    # No specifier, end the import
+    - match: '(?=\s*$|[^a-zA-Z0-9_\s])'
+      pop: true
+
+  import_alias:
+    - match: '[A-Za-z][a-zA-Z0-9_]*'
+      scope: entity.name.namespace.extra
+      pop: true
+
+  import_list:
+    - match: '\s*{'
+      scope: punctuation.section.braces.begin.extra
+      push:
+        - meta_scope: meta.import.extra
+        - match: '}'
+          scope: punctuation.section.braces.end.extra
+          pop: true
+        - match: '[a-zA-Z0-9_\-]+'
+          scope: variable.other.import.extra
+        - match: ','
+          scope: punctuation.separator.comma.extra
+    - match: '(?=\S)'
+      pop: true

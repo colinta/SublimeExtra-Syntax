@@ -1,0 +1,17 @@
+{
+  "name": "Extra Syntax",
+  "previous_names": [],
+  "description": "Extra",
+  "author": "Colin T.A. Gray (colinta)",
+  "license": "MIT",
+  "details": "https://github.com/colinta/extra",
+  "labels": [
+    "language syntax"
+  ],
+  "releases": [
+    {
+      "tags": true,
+      "sublime_text": ">=3000"
+    }
+  ]
+}
