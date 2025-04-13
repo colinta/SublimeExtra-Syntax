@@ -1,16 +1,16 @@
 {
   "name": "Extra Syntax",
-  "previous_names": [],
+  "details": "https://github.com/colinta/extra",
   "description": "Extra",
   "author": "Colin T.A. Gray (colinta)",
-  "details": "https://github.com/colinta/extra",
   "labels": [
     "language syntax"
   ],
+  "previous_names": [],
   "releases": [
     {
-      "tags": true,
-      "sublime_text": ">=3000"
+      "sublime_text": ">=3000",
+      "tags": true
     }
   ]
 }
