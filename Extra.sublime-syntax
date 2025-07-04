@@ -170,7 +170,7 @@ contexts:
     - match: '\b(public type|type public|type)\b'
       scope: keyword.control.extra
       push: type_definition
-    - match: '\b(expects|let|in|public|if|then|elseif|else|enum|case|switch)\b'
+    - match: '\b(expects|let|in|public|if|then|elseif|else|enum|case|switch|and|or)\b'
       scope: keyword.control.extra
     - match: '\b(import)\b'
       scope: keyword.control.import.extra
